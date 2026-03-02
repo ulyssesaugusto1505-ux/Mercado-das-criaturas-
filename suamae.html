@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mercado das Criaturas</title>
+<style>
+body {
+    background: #0f0f0f;
+    color: white;
+    font-family: Arial;
+    text-align: center;
+}
+button {
+    padding: 8px 15px;
+    margin: 6px;
+    cursor: pointer;
+}
+.box {
+    border: 1px solid white;
+    padding: 12px;
+    margin: 12px;
+    display: inline-block;
+    width: 320px;
+    vertical-align: top;
+}
+.common { color: #ccc; }
+.uncommon { color: #ffeb3b; }
+.rare { color: #2196f3; }
+.epic { color: #ff9800; }
+.mythic { color: #4caf50; }
+.legendary { color: #9c27b0; }
+.ancestral { color: #f44336; }
+.divine { color: white; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>🌌 Mercado das Criaturas</h1>
+
+<h2>💰 Dinheiro: $<span id="money">0</span></h2>
+<h3>💎 Cristais Primordiais: <span id="crystals">0</span></h3>
+
+<button onclick="spin()">🎰 Girar Roleta ($500)</button>
+
+<div class="box">
+<h3>🌌 Renascimento Cósmico</h3>
+<p>Necessário: $50.000.000</p>
+<button onclick="prestige()">Renasc­er</button>
+</div>
+
+<div class="box">
+<h3>🔳 Loja Divina</h3>
+<button onclick="buyDivine('Kraken',1)">🐙 Kraken (1 cristal)</button><br>
+<button onclick="buyDivine('Fenix',10)">🔥 Fênix (10 cristais)</button><br>
+<button onclick="buyDivine('Dragao Supremo',100)">🐲 Dragão Supremo (100 cristais)</button>
+</div>
+
+<div class="box">
+<h3>📦 Suas Criaturas</h3>
+<div id="creatures"></div>
+</div>
+
+<script>
+let money = 1000; // 🔥 AGORA COMEÇA COM 1000
+let crystals = 0;
+let globalMultiplier = 1;
+
+let creatures = {};
+
+function addCreature(name, income, rarity){
+    creatures[name] = {count:0, income:income, rarity:rarity};
+}
+
+function setupCreatures(){
+
+    addCreature("🐭 Rato",1,"common");
+    addCreature("🐌 Caracol",1,"common");
+    addCreature("🐟 Peixe",1,"common");
+    addCreature("🐥 Pintinho",1,"common");
+    addCreature("🦆 Pato",1,"common");
+
+    addCreature("🦀 Caranguejo",5,"uncommon");
+    addCreature("🕷️ Aranha",5,"uncommon");
+    addCreature("🐝 Abelha",5,"uncommon");
+    addCreature("🐶 Cachorro",5,"uncommon");
+    addCreature("🐱 Gato",5,"uncommon");
+
+    addCreature("🐵 Macaco",20,"rare");
+    addCreature("🐢 Tartaruga",20,"rare");
+    addCreature("🐖 Porco",20,"rare");
+    addCreature("🐔 Galinha",20,"rare");
+    addCreature("🦜 Papagaio",20,"rare");
+
+    addCreature("🐻 Urso",100,"epic");
+    addCreature("🦁 Leão",100,"epic");
+    addCreature("🐯 Tigre",100,"epic");
+    addCreature("🐴 Cavalo",100,"epic");
+    addCreature("🐗 Javali",100,"epic");
+
+    addCreature("🐍 Cobra",400,"mythic");
+    addCreature("🦍 Gorila",400,"mythic");
+    addCreature("🦈 Tubarão",400,"mythic");
+    addCreature("🐋 Baleia",400,"mythic");
+    addCreature("🦏 Rinoceronte",400,"mythic");
+
+    addCreature("🐄 Vaca Sagrada",1500,"legendary");
+    addCreature("🦧 Orangotango Ancião",1500,"legendary");
+    addCreature("🐬 Golfinho Imperial",1500,"legendary");
+    addCreature("🦞 Lagosta Colossal",1500,"legendary");
+    addCreature("🧍 Humano Lendário",1500,"legendary");
+
+    addCreature("🦎 Salamandra Antiga",5000,"ancestral");
+    addCreature("🦖 T-Rex",5000,"ancestral");
+    addCreature("🦕 Braquiossauro",5000,"ancestral");
+    addCreature("🦄 Unicórnio",5000,"ancestral");
+    addCreature("🐸 Sapo Arcano",5000,"ancestral");
+
+    addCreature("Kraken",20000,"divine");
+    addCreature("Fenix",20000,"divine");
+    addCreature("Dragao Supremo",20000,"divine");
+
+    creatures["🐭 Rato"].count = 1;
+}
+
+function updateUI(){
+    document.getElementById("money").innerText = Math.floor(money);
+    document.getElementById("crystals").innerText = crystals;
+
+    let text = "";
+    for(let name in creatures){
+        if(creatures[name].count > 0){
+            text += `<div class="${creatures[name].rarity}">
+            ${name} (${creatures[name].income}$/s) x${creatures[name].count}
+            </div>`;
+        }
+    }
+    document.getElementById("creatures").innerHTML = text;
+}
+
+function gameLoop(){
+    let income = 0;
+    for(let name in creatures){
+        income += creatures[name].income * creatures[name].count;
+    }
+    income *= globalMultiplier;
+    money += income;
+    updateUI();
+}
+
+function spin(){
+    if(money < 500){ alert("Dinheiro insuficiente!"); return; }
+    money -= 500;
+
+    let rarities = ["common","uncommon","rare","epic","mythic","legendary","ancestral","divine"];
+    let chances = [0.35,0.25,0.18,0.12,0.06,0.03,0.009,0.001];
+
+    let r = Math.random();
+    let cumulative = 0;
+    let chosenRarity;
+
+    for(let i=0;i<rarities.length;i++){
+        cumulative += chances[i];
+        if(r < cumulative){
+            chosenRarity = rarities[i];
+            break;
+        }
+    }
+
+    let options = Object.keys(creatures).filter(c=>creatures[c].rarity==chosenRarity);
+    let chosen = options[Math.floor(Math.random()*options.length)];
+    creatures[chosen].count++;
+
+    alert("✨ Você conseguiu: " + chosen);
+}
+
+function prestige(){
+    if(money < 50000000){
+        alert("Você precisa de $50.000.000!");
+        return;
+    }
+
+    crystals++;
+    globalMultiplier = 1 + (crystals * 0.25);
+
+    for(let name in creatures){
+        creatures[name].count = 0;
+    }
+
+    creatures["🐭 Rato"].count = 1;
+    money = 1000; // começa melhor após renascimento também
+
+    alert("🌌 Renascimento realizado! +1 Cristal!");
+}
+
+function buyDivine(name,cost){
+    if(crystals < cost){
+        alert("Cristais insuficientes!");
+        return;
+    }
+    crystals -= cost;
+    creatures[name].count++;
+    alert("🔳 Criatura Divina adquirida: " + name);
+}
+
+setupCreatures();
+updateUI();
+setInterval(gameLoop,1000);
+</script>
+
+</body>
+</html>
